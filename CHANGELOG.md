@@ -8,6 +8,8 @@
 
 - Add the `--include` option to only shows given packages
 
+- Add a new `--include` option that only shows given packages.
+
 # 1.4.0
 
 - Add the `--root` option to specify a subset of a workspace's crates you want
