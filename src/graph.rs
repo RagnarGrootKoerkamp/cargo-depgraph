@@ -128,6 +128,14 @@ pub(crate) fn remove_deps(graph: &mut DepGraph, hide: &[String]) {
 }
 
 pub(crate) fn dedup_transitive_deps(graph: &mut DepGraph) {
+    // Make a new graph with all optional dependencies removed.
+    let mut g2 = graph.clone();
+    for e_idx in graph.edge_indices() {
+        if g2.edge_weight(e_idx).unwrap().is_optional {
+            g2.remove_edge(e_idx);
+        }
+    }
+
     for idx in graph.node_indices().collect::<Vec<_>>() {
         // We're only removing nodes, not adding new ones, so we can use the node indices collected
         // at the start as long as we check that they're still valid within the current graph.
@@ -138,7 +146,7 @@ pub(crate) fn dedup_transitive_deps(graph: &mut DepGraph) {
         let mut outgoing = graph.neighbors_directed(idx, Direction::Outgoing).detach();
         while let Some((edge_idx, node_idx)) = outgoing.next(graph) {
             let any_paths =
-                all_simple_paths::<Vec<_>, _>(&*graph, idx, node_idx, 1, None).next().is_some();
+                all_simple_paths::<Vec<_>, _>(&g2, idx, node_idx, 1, None).next().is_some();
 
             if any_paths {
                 graph.remove_edge(edge_idx);
