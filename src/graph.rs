@@ -127,11 +127,17 @@ pub(crate) fn remove_deps(graph: &mut DepGraph, hide: &[String]) {
     }
 }
 
+/// Deduplicates edges A -> C when there is a path A -> B -> ... -> C, when:
+/// - if AC is required: when all edges in the path are required
+/// - if AC is optional: when all edges in the path are required (or optional??)
+/// - if AC is target specific: when all edges in the path are non-optional (ie required or target specific)
+/// - if AC is optional and target specific: when all edges in the path are non-optional (ie required or target specific)
 pub(crate) fn dedup_transitive_deps(graph: &mut DepGraph) {
     // Make a new graph with all optional dependencies removed.
     let mut g2 = graph.clone();
     for e_idx in graph.edge_indices() {
-        if g2.edge_weight(e_idx).unwrap().is_optional {
+        let edge_info = &g2.edge_weight(e_idx).unwrap();
+        if edge_info.is_optional || edge_info.is_target_dep {
             g2.remove_edge(e_idx);
         }
     }
